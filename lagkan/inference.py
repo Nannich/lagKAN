@@ -112,7 +112,7 @@ def extract_kan_weights(kan_model):
     edge_weights = kan_model.edge_scores[0].detach().cpu().numpy().flatten()
     return edge_weights
 
-def infer_grn(raw_counts, pseudotime, lineage_assignment, gene_names=None, dt=0.08, epochs=400, lr=0.01, lamb_l1=0.02, edge_threshold=0.0):
+def infer_grn(log_counts, pseudotime, lineage_assignment, gene_names=None, dt=0.08, epochs=400, lr=0.01, lamb_l1=0.02, edge_threshold=0.0):
     """
     Infers a Gene Regulatory Network by training a Kolmogorov-Arnold Network (KAN) for each gene.
 
@@ -156,7 +156,7 @@ def infer_grn(raw_counts, pseudotime, lineage_assignment, gene_names=None, dt=0.
     pseudotime = np.asarray(pseudotime, dtype=np.float32)
     lineage_assignment = np.asarray(lineage_assignment, dtype=bool)
 
-    n_genes = raw_counts.shape[1]
+    n_genes = log_counts.shape[1]
     
     if gene_names is None:
         gene_names = [f"Gene_{i}" for i in range(n_genes)]
