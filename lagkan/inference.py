@@ -5,13 +5,10 @@ import torch.nn as nn
 import torch.optim as optim
 from kan import KAN
 
-def get_lagged_expression(raw_counts, pseudotime, lineage_assignment, target_idx, dt=0.08):
+def get_lagged_expression(log_counts, pseudotime, lineage_assignment, target_idx, dt=0.08):
     """
     Shifts each cell on each lineage based on dt.
     """
-    # Normalize data
-    log_counts = np.log1p(raw_counts)
-    
     n_lineages = lineage_assignment.shape[1]
 
     X_lagged = []
@@ -121,8 +118,8 @@ def infer_grn(raw_counts, pseudotime, lineage_assignment, gene_names=None, dt=0.
 
     Parameters
     ----------
-    raw_counts : array-like of shape (n_cells, n_genes)
-        Raw gene expression matrix. Log1p normalization is applied internally.
+    log_counts : array-like of shape (n_cells, n_genes)
+        Log-transformed or normalized gene expression matrix (e.g., log1p format).
     pseudotime : array-like of shape (n_cells, n_lineages)
         Pseudotime values of each cell along the lineage.
     lineage_assignment : array-like of shape (n_cells, n_lineages)
@@ -155,7 +152,7 @@ def infer_grn(raw_counts, pseudotime, lineage_assignment, gene_names=None, dt=0.
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    raw_counts = np.asarray(raw_counts, dtype=np.float32)
+    log_counts = np.asarray(log_counts, dtype=np.float32)
     pseudotime = np.asarray(pseudotime, dtype=np.float32)
     lineage_assignment = np.asarray(lineage_assignment, dtype=bool)
 
@@ -175,7 +172,7 @@ def infer_grn(raw_counts, pseudotime, lineage_assignment, gene_names=None, dt=0.
         print(f"[{target_idx + 1}/{n_genes}] Processing gene: {target_gene}...")
 
         X_numpy, Y_numpy = get_lagged_expression(
-            raw_counts, pseudotime, lineage_assignment, target_idx, dt=dt
+            log_counts, pseudotime, lineage_assignment, target_idx, dt=dt
         )
         
         X_tensor = torch.tensor(X_numpy, dtype=torch.float32).to(device)

@@ -7,11 +7,11 @@ lagKAN is a tool for inferring signed Gene Regulatory Networks (GRNs) by trainin
 ## Data Requirements
 
 To run the inference loop, you need to prepare three input matrices:
-* **Raw expression counts**: Matrix formatted as (Cells x Genes).
+* **Log-transformed expression counts**: Normalized (e.g. log1p) counts matrix formatted as (Cells x Genes).
 * **Pseudotime values**: Matrix formatted as (Cells x Lineages).
 * **Lineage assignment**: A boolean mask formatted as (Cells x Lineages), where True signifies a cell belongs to that specific lineage branch.
 
-If only a raw counts matrix is available, you must first run a trajectory inference algorithm to obtain the pseudotime values for each cell.
+If only the gene expression counts matrix is available, you must first run a trajectory inference algorithm to obtain the pseudotime values for each cell.
 
 ---
 
@@ -24,14 +24,15 @@ import pandas as pd
 import lagkan
 
 # 1. Format inputs from your dataframes
-raw_counts = expression_df.values.T             
+raw_counts = expression_df.values.T
+log_counts = np.log1p(raw_counts)       
 pseudotime = pt_df.fillna(0.0).values           
 lineage_assignment = pt_df.notna().values       
 gene_names = expression_df.index.values
 
 # 2. Run inference with default parameters
 ranked_edges_df = lagkan.infer_grn(
-    raw_counts=raw_counts,
+    log_counts=log_counts,
     pseudotime=pseudotime,
     lineage_assignment=lineage_assignment,
     gene_names=gene_names,
@@ -47,7 +48,7 @@ ranked_edges_df = lagkan.infer_grn(
 
 ## Parameters
 
-* `raw_counts` (n_cells, n_genes): Raw gene expression matrix. Log1p normalization is applied internally.
+* `log_counts` (n_cells, n_genes): Log-transformed or normalized gene expression matrix (e.g., log1p format).
 * `pseudotime` (n_cells, n_lineages): Pseudotime values of each cell along the lineage.
 * `lineage_assignment` (n_cells, n_lineages): Boolean mask where True signifies a cell belongs to that specific lineage branch.
 * `gene_names`: String identifiers for the genes. If None, features are named 'Gene_0', 'Gene_1', etc.
